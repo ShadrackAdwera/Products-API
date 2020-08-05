@@ -1,7 +1,7 @@
 const HttpError = require('../models/http-error')
 const { v4: uuid } = require('uuid')
 
-const DUMMY_PRODUCTS = [
+let DUMMY_PRODUCTS = [
     {
       id: 'p1',
       name: 'Suit One',
@@ -123,8 +123,13 @@ const updateProduct = (req,res,next) => {
 
     DUMMY_PRODUCTS[placeIndex] = foundProduct
 
-    res.status(200).json({message:'Product Updated', product: foundProduct})
-    
+    res.status(200).json({message:'Product Updated', product: foundProduct}) 
+}
+
+const deleteProduct = (req,res,next) => {
+    const productId = req.params.prodId
+    DUMMY_PRODUCTS = DUMMY_PRODUCTS.filter(prod=>prod.id!==productId)
+    res.status(200).json({message: 'Product Deleted'})
 }
   
 
@@ -133,3 +138,4 @@ const updateProduct = (req,res,next) => {
   exports.productsByUserId = productsByUserId
   exports.createProduct = createProduct
   exports.updateProduct = updateProduct
+  exports.deleteProduct = deleteProduct
