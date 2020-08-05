@@ -81,7 +81,17 @@ const productsById = (req,res,next) => {
     }
     res.status(200).json({message:'Product Found',product: foundProduct})
 }
+
+const productsByUserId = (req,res,next) => {
+    const userId = req.params.userId
+    const foundProducts = DUMMY_PRODUCTS.filter(prod=>prod.creator===userId)
+    if(!foundProducts) {
+        throw new HttpError('Could not find product for the provided user ID',404)
+    }
+    res.status(200).json({totalProducts: foundProducts.length, products: foundProducts})
+}
   
 
   exports.allProducts = allProducts
   exports.productsById = productsById
+  exports.productsByUserId = productsByUserId
