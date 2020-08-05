@@ -1,12 +1,17 @@
 const express = require('express')
 const productRoutes = require('./routes/product-routes')
 const bodyParser = require('body-parser')
+const HttpError = require('./models/http-error')
 
 const app = express()
 
 app.use(bodyParser.json())
 
 app.use('/api/products',productRoutes)
+
+app.use((req,res,next)=>{
+    throw new HttpError('Could not find the method / route. Try Again',500)
+})
 
 app.use((error,req,res,next)=>{
     if(res.headerSent) {
