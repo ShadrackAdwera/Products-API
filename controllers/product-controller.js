@@ -72,6 +72,16 @@ const DUMMY_PRODUCTS = [
 const allProducts  = (req, res, next) => {
     res.json({ totalProducts: DUMMY_PRODUCTS.length, products: DUMMY_PRODUCTS });
   }
+
+const productsById = (req,res,next) => {
+    const productId = req.params.prodId
+    const foundProduct = DUMMY_PRODUCTS.find(prod=>prod.id===productId)
+    if(!foundProduct) {
+        throw new HttpError('COuld not find product for the provided ID',404)
+    }
+    res.status(200).json({message:'Product Found',product: foundProduct})
+}
   
 
   exports.allProducts = allProducts
+  exports.productsById = productsById
