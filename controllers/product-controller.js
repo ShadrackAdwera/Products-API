@@ -96,11 +96,34 @@ const createProduct = (req,res,next) => {
     const { name,description,images,sizes,colors,price,creator } = req.body
 
     const createdProduct = {
-       id: uuid() ,name,description,images,sizes,colors,price,creator
+       id: uuid(),name,description,images,sizes,colors,price,creator
     }
 
     DUMMY_PRODUCTS.unshift(createdProduct)
-    res.status(201).json({product: createdProduct})
+    res.status(201).json({product: createdProduct}) 
+}
+
+const updateProduct = (req,res,next) => {
+    const productId = req.params.prodId
+    const foundProduct = {...DUMMY_PRODUCTS.find(prod=>prod.id===productId)}
+    if(!foundProduct) {
+        throw new HttpError('COuld not find product for the specified ID', 404)
+    }
+    const { name,description,images,sizes,colors,price,creator } = req.body
+
+    const placeIndex = DUMMY_PRODUCTS.findIndex(prod=>prod.id===productId)
+
+    foundProduct.name = name
+    foundProduct.description = description
+    foundProduct.images = images
+    foundProduct.sizes = sizes
+    foundProduct.colors = colors
+    foundProduct.price = price
+    foundProduct.creator = creator
+
+    DUMMY_PRODUCTS[placeIndex] = foundProduct
+
+    res.status(200).json({message:'Product Updated', product: foundProduct})
     
 }
   
@@ -109,3 +132,4 @@ const createProduct = (req,res,next) => {
   exports.productsById = productsById
   exports.productsByUserId = productsByUserId
   exports.createProduct = createProduct
+  exports.updateProduct = updateProduct

@@ -10,5 +10,6 @@ router.get('/', productController.allProducts);
 router.get('/:prodId', productController.productsById);
 router.get('/user/:userId', productController.productsByUserId);
 router.post('/new', productController.createProduct)
+router.patch('/:prodId', productController.updateProduct)
 
 module.exports = router;
