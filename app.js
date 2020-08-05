@@ -1,7 +1,10 @@
 const express = require('express')
 const productRoutes = require('./routes/product-routes')
+const bodyParser = require('body-parser')
 
 const app = express()
+
+app.use(bodyParser.json())
 
 app.use('/api/products',productRoutes)
 
