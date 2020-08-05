@@ -2,6 +2,8 @@ const express = require('express');
 
 const router = express.Router();
 
+const HttpError = require('../models/http-error')
+
 const DUMMY_PRODUCTS = [
   {
     id: 'p1',
@@ -79,9 +81,7 @@ router.get('/:id', (req, res, next) => {
   const foundProduct = DUMMY_PRODUCTS.find((prod) => prod.id === productId);
   if(!foundProduct) {
       //return res.status(404).json({error:'Could not find product for the provided ID'})
-      const error = new Error('Could not find product for the provided ID')
-      error.code = 404
-      throw error
+      throw new HttpError('Could not find product for the provided ID',404)
   }
   res.json({ message: 'Found Product', product: foundProduct });
 });
@@ -93,9 +93,7 @@ router.get('/user/:userId', (req, res, next) => {
   );
   if(!foundProducts) {
     //return res.status(404).json({error:'Could not find product for the provided User ID'})
-    const error = new Error('Could not find product for the provided User ID')
-    error.code = 404
-    return next(error)
+    throw new HttpError('Could not find product for the provided User ID',404)
 }
   res.json({ productsFound: foundProducts.length, products: foundProducts });
 });
