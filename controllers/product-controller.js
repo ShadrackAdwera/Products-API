@@ -70,6 +70,21 @@ let DUMMY_PRODUCTS = [
     },
   ];
 
+  //CREATE
+
+  const createProduct = (req,res,next) => {
+    const { name,description,images,sizes,colors,price,creator } = req.body
+
+    const createdProduct = {
+       id: uuid(),name,description,images,sizes,colors,price,creator
+    }
+
+    DUMMY_PRODUCTS.unshift(createdProduct)
+    res.status(201).json({product: createdProduct}) 
+}
+
+//READ
+
 const allProducts  = (req, res, next) => {
     res.json({ totalProducts: DUMMY_PRODUCTS.length, products: DUMMY_PRODUCTS });
   }
@@ -92,22 +107,13 @@ const productsByUserId = (req,res,next) => {
     res.status(200).json({totalProducts: foundProducts.length, products: foundProducts})
 }
 
-const createProduct = (req,res,next) => {
-    const { name,description,images,sizes,colors,price,creator } = req.body
-
-    const createdProduct = {
-       id: uuid(),name,description,images,sizes,colors,price,creator
-    }
-
-    DUMMY_PRODUCTS.unshift(createdProduct)
-    res.status(201).json({product: createdProduct}) 
-}
+//UPDATE
 
 const updateProduct = (req,res,next) => {
     const productId = req.params.prodId
     const foundProduct = {...DUMMY_PRODUCTS.find(prod=>prod.id===productId)}
     if(!foundProduct) {
-        throw new HttpError('COuld not find product for the specified ID', 404)
+        throw new HttpError('COuld not find product for the provided ID', 404)
     }
     const { name,description,images,sizes,colors,price,creator } = req.body
 
@@ -125,6 +131,8 @@ const updateProduct = (req,res,next) => {
 
     res.status(200).json({message:'Product Updated', product: foundProduct}) 
 }
+
+//DELETE
 
 const deleteProduct = (req,res,next) => {
     const productId = req.params.prodId
