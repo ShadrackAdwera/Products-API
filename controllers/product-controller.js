@@ -1,5 +1,6 @@
-const HttpError = require('../models/http-error')
 const { v4: uuid } = require('uuid')
+const { validationResult } = require('express-validator')
+const HttpError = require('../models/http-error')
 
 let DUMMY_PRODUCTS = [
     {
@@ -73,6 +74,12 @@ let DUMMY_PRODUCTS = [
   //CREATE
 
   const createProduct = (req,res,next) => {
+    const errors = validationResult(req)
+
+    if(!errors.isEmpty()) {
+      throw new HttpError('Invalid Inputs! Check your data',422)
+    }
+
     const { name,description,images,sizes,colors,price,creator } = req.body
 
     const createdProduct = {
