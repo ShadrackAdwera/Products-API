@@ -26,8 +26,22 @@ const allUsers = (req,res,next) => {
  res.status(200).json({numberOfUsers: DUMMY_USERS.length, users: DUMMY_USERS})   
 }
 
+const getUserById = (req,res,next) => {
+    const userId = req.params.userId
+    const foundUser = DUMMY_USERS.find(user=>user.id===userId)
+    if(!foundUser) {
+        throw new HttpError('Could not find user for the provided ID',404)
+    }
+    res.status(200).json({message:'User Found',user: foundUser})
+
+}
+
 const signUp = (req,res,next) => {
     const { name,email,password } = req.body
+    const foundEmail = DUMMY_USERS.find(user=>user.email===email)
+    if(foundEmail) {
+        throw new Error('Email exists,try logging in',403)
+    }
     const createdUser = { id: uuid(),name, email, password}
     DUMMY_USERS.unshift(createdUser)
     res.status(201).json({message: 'Sign Up Successful',user: createdUser})
@@ -35,15 +49,14 @@ const signUp = (req,res,next) => {
 
 const login = (req,res,next) => {
     const { email, password } = req.body
-    for(const user of DUMMY_USERS) {
-        if(email===user.email && password===user.password) {
-            res.status(200).json({message:'Login Successful'})
-        } else {
-            res.status(401).json({message:'Auth Failed'})
-        }
+    const foundEmail = DUMMY_USERS.find(user=>user.email===email)
+    if(!foundEmail || foundEmail.password!==password) {
+        throw new Error('Auth failed!',401)
     }
+    res.status(200).json({message:'Login Successful!'})
 }
 
 exports.allUsers = allUsers
+exports.getUserById = getUserById
 exports.signUp = signUp
 exports.login = login
