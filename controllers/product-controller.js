@@ -149,6 +149,10 @@ const updateProduct = (req,res,next) => {
 
 const deleteProduct = (req,res,next) => {
     const productId = req.params.prodId
+    const foundProduct = DUMMY_PRODUCTS.find(prod=>prod.id===productId)
+    if(!foundProduct) {
+      throw new HttpError('Could not find product for the specified ID',400)
+    }
     DUMMY_PRODUCTS = DUMMY_PRODUCTS.filter(prod=>prod.id!==productId)
     res.status(200).json({message: 'Product Deleted'})
 }
