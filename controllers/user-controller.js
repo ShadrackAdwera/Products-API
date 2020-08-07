@@ -89,11 +89,18 @@ const signUp = async (req, res, next) => {
   res.status(201).json({ message: 'Sign Up Successful', user: result.toObject({getters:true}) });
 };
 
-const login = (req, res, next) => {
+const login = async (req, res, next) => {
   const { email, password } = req.body;
-  const foundEmail = DUMMY_USERS.find((user) => user.email === email);
-  if (!foundEmail || foundEmail.password !== password) {
-    throw new Error('Auth failed!', 401);
+
+  let foundEmail
+  try {
+      foundEmail = await User.findOne({email: email}).exec()
+  } catch (error) {
+      return next(new HttpError('Could not validate email',500))
+  }
+
+  if(!foundEmail || foundEmail.password!==password) {
+      return next(new HttpError('Auth failed',401))
   }
   res.status(200).json({ message: 'Login Successful!' });
 };
