@@ -6,21 +6,19 @@ const User = require('../models/user');
 
 const allUsers = async (req, res, next) => {
   const users = await User.find({}, '-password');
-  res
-    .status(200)
-    .json({
-      foundUsers: users.length,
-      users: users.map((user) => user.toObject({ getters: true })),
-    });
+  res.status(200).json({
+    foundUsers: users.length,
+    users: users.map((user) => user.toObject({ getters: true })),
+  });
 };
 
 const getUserById = async (req, res, next) => {
   const userId = req.params.userId;
-  let foundUser
+  let foundUser;
   try {
-    foundUser = await User.findById(userId).exec()
+    foundUser = await User.findById(userId).exec();
   } catch (error) {
-      return next(new HttpError('Fetch user failed',500))
+    return next(new HttpError('Fetch user failed', 500));
   }
 
   if (!foundUser) {
@@ -39,7 +37,7 @@ const signUp = async (req, res, next) => {
       )
     );
   }
-  const { name, image, email, password, address } = req.body;
+  const { name, image, address, email, password } = req.body;
   let foundEmail;
   try {
     foundEmail = await User.findOne({ email: email }).exec();
@@ -66,7 +64,7 @@ const signUp = async (req, res, next) => {
     pin: coordinates,
     email,
     password,
-    products:[],
+    products: [],
   });
 
   try {
@@ -75,12 +73,10 @@ const signUp = async (req, res, next) => {
     return next(new HttpError('Auth Failed', 401));
   }
 
-  res
-    .status(201)
-    .json({
-      message: 'Sign Up Successful',
-      user: result.toObject({ getters: true }),
-    });
+  res.status(201).json({
+    message: 'Sign Up Successful',
+    user: result.toObject({ getters: true }),
+  });
 };
 
 const login = async (req, res, next) => {
