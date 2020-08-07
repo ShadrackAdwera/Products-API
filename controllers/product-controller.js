@@ -1,3 +1,4 @@
+const mongoose = require('mongoose')
 const { validationResult } = require('express-validator');
 const HttpError = require('../models/http-error');
 const Product = require('../models/products');
@@ -36,20 +37,26 @@ const createProduct = async (req, res, next) => {
     creator,
   });
 
-  let creatorId
+  let creatorForProduct
 
   try {
-    creatorId = await User.findById(creator).exec()
+    creatorForProduct = await User.findById(creator).exec()
   } catch (error) {
     return next(new HttpError('Check user failed!',500))
   }
 
-  if(!creatorId) {
+  if(!creatorForProduct) {
     return next(new HttpError('User does not exist!',404))
   }
 
   try {
-    result = await createdProduct.save();
+    const sess = await mongoose.startSession()
+    sess.startTransaction()
+    await createdProduct.save({session: sess})
+    creatorForProduct.products.push(createdProduct)
+    await creatorForProduct.save({session:sess})
+    await sess.commitTransaction()
+
   } catch (error) {
     return next(new HttpError('Fail to save product', 400));
   }
