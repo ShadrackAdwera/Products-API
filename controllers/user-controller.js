@@ -39,7 +39,7 @@ const signUp = async (req, res, next) => {
       )
     );
   }
-  const { name, image, email, password, address, products } = req.body;
+  const { name, image, email, password, address } = req.body;
   let foundEmail;
   try {
     foundEmail = await User.findOne({ email: email }).exec();
@@ -66,7 +66,7 @@ const signUp = async (req, res, next) => {
     pin: coordinates,
     email,
     password,
-    products,
+    products:[],
   });
 
   try {

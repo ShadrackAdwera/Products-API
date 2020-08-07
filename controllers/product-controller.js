@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 const HttpError = require('../models/http-error');
 const Product = require('../models/products');
+const User = require('../models/user')
 
 //CREATE
 
@@ -34,6 +35,19 @@ const createProduct = async (req, res, next) => {
     price,
     creator,
   });
+
+  let creatorId
+
+  try {
+    creatorId = await User.findById(creator).exec()
+  } catch (error) {
+    return next(new HttpError('Check user failed!',500))
+  }
+
+  if(!creatorId) {
+    return next(new HttpError('User does not exist!',404))
+  }
+
   try {
     result = await createdProduct.save();
   } catch (error) {
