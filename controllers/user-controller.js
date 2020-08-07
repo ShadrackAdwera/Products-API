@@ -1,3 +1,4 @@
+const { validationResult } = require('express-validator')
 const { v4:uuid } = require('uuid')
 const HttpError = require('../models/http-error')
 
@@ -37,6 +38,10 @@ const getUserById = (req,res,next) => {
 }
 
 const signUp = (req,res,next) => {
+    const error = validationResult(req)
+    if(!error.isEmpty()) {
+        throw new HttpError('Use a valid email, password must be longer than 6 characters',422)
+    }
     const { name,email,password } = req.body
     const foundEmail = DUMMY_USERS.find(user=>user.email===email)
     if(foundEmail) {
