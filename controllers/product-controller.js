@@ -1,8 +1,8 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const HttpError = require('../models/http-error');
 const Product = require('../models/products');
-const User = require('../models/user')
+const User = require('../models/user');
 
 //CREATE
 
@@ -37,31 +37,30 @@ const createProduct = async (req, res, next) => {
     creator,
   });
 
-  let creatorForProduct
+  let creatorForProduct;
 
   try {
-    creatorForProduct = await User.findById(creator).exec()
+    creatorForProduct = await User.findById(creator).exec();
   } catch (error) {
-    return next(new HttpError('Check user failed!',500))
+    return next(new HttpError('User does not exist! Try again', 500));
   }
 
-  if(!creatorForProduct) {
-    return next(new HttpError('User does not exist!',404))
+  if (!creatorForProduct) {
+    return next(new HttpError('User does not exist!', 404));
   }
 
   try {
-    const sess = await mongoose.startSession()
-    sess.startTransaction()
-    await createdProduct.save({session: sess})
-    creatorForProduct.products.push(createdProduct)
-    await creatorForProduct.save({session:sess})
-    await sess.commitTransaction()
-
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await createdProduct.save({ session: sess });
+    creatorForProduct.products.push(createdProduct);
+    await creatorForProduct.save({ session: sess });
+    await sess.commitTransaction();
   } catch (error) {
     return next(new HttpError('Fail to save product', 400));
   }
 
-  res.status(201).json({ message: 'Product Created', product: result });
+  res.status(201).json({ message: 'Product Created', product: createdProduct });
 };
 
 //READ
@@ -86,12 +85,10 @@ const productsById = async (req, res, next) => {
       new HttpError('COuld not find product for the provided ID', 404)
     );
   }
-  res
-    .status(200)
-    .json({
-      message: 'Product Found',
-      product: foundProduct.toObject({ getters: true }),
-    });
+  res.status(200).json({
+    message: 'Product Found',
+    product: foundProduct.toObject({ getters: true }),
+  });
 };
 
 const productsByUserId = async (req, res, next) => {
@@ -109,12 +106,10 @@ const productsByUserId = async (req, res, next) => {
       new HttpError('Could not find product for the provided user ID', 404)
     );
   }
-  res
-    .status(200)
-    .json({
-      totalProducts: foundProducts.length,
-      products: foundProducts.map((prod) => prod.toObject({ getters: true })),
-    });
+  res.status(200).json({
+    totalProducts: foundProducts.length,
+    products: foundProducts.map((prod) => prod.toObject({ getters: true })),
+  });
 };
 
 //UPDATE
@@ -134,7 +129,9 @@ const updateProduct = async (req, res, next) => {
   }
 
   if (!foundProduct) {
-    return next(new HttpError('COuld not find product for the provided ID', 404));
+    return next(
+      new HttpError('COuld not find product for the provided ID', 404)
+    );
   }
 
   const { name, description, images, sizes, colors, price, creator } = req.body;
@@ -152,34 +149,34 @@ const updateProduct = async (req, res, next) => {
   } catch (error) {
     return next(new HttpError('Could not update product, try again', 422));
   }
-  res
-    .status(200)
-    .json({
-      message: 'Product Updated',
-      product: foundProduct.toObject({ getters: true }),
-    });
+  res.status(200).json({
+    message: 'Product Updated',
+    product: foundProduct.toObject({ getters: true }),
+  });
 };
 
 //DELETE
 
 const deleteProduct = async (req, res, next) => {
   const productId = req.params.prodId;
-  let foundProduct
-  
+  let foundProduct;
+
   try {
-    foundProduct = await Product.findById(productId).exec()
+    foundProduct = await Product.findById(productId).exec();
   } catch (error) {
-    return next(new HttpError('Could not fetch product',500))
+    return next(new HttpError('Could not fetch product', 500));
   }
-  
+
   if (!foundProduct) {
-    return next(new HttpError('Could not find product for the specified ID', 400));
+    return next(
+      new HttpError('Could not find product for the specified ID', 400)
+    );
   }
-  
+
   try {
-    await foundProduct.remove()
+    await foundProduct.remove();
   } catch (error) {
-   return next(new HttpError('Could not delete product',500))
+    return next(new HttpError('Could not delete product', 500));
   }
 
   res.status(200).json({ message: 'Product Deleted' });
