@@ -4,31 +4,14 @@ const HttpError = require('../models/http-error');
 const getCoordsFromAddress = require('../utils/location');
 const User = require('../models/user');
 
-const DUMMY_USERS = [
-  {
-    id: uuid(),
-    name: 'Deez Nuts',
-    email: 'deez@nuts.com',
-    password: 'jammer',
-  },
-  {
-    id: uuid(),
-    name: 'Deez Two',
-    email: 'deez@test.com',
-    password: 'tester',
-  },
-  {
-    id: uuid(),
-    name: 'Deez Three',
-    email: 'deez@three.com',
-    password: 'password',
-  },
-];
-
-const allUsers = (req, res, next) => {
+const allUsers = async (req, res, next) => {
+  const users = await User.find({}, '-password');
   res
     .status(200)
-    .json({ numberOfUsers: DUMMY_USERS.length, users: DUMMY_USERS });
+    .json({
+      foundUsers: users.length,
+      users: users.map((user) => user.toObject({ getters: true })),
+    });
 };
 
 const getUserById = (req, res, next) => {
@@ -50,7 +33,7 @@ const signUp = async (req, res, next) => {
       )
     );
   }
-  const { name, image, email, password, address,products } = req.body;
+  const { name, image, email, password, address, products } = req.body;
   let foundEmail;
   try {
     foundEmail = await User.findOne({ email: email }).exec();
@@ -74,33 +57,38 @@ const signUp = async (req, res, next) => {
     name,
     image,
     address,
-    pin: coordinates,   
+    pin: coordinates,
     email,
     password,
     products,
   });
 
   try {
-    result = await createdUser.save()
+    result = await createdUser.save();
   } catch (error) {
     return next(new HttpError('Auth Failed', 401));
   }
 
-  res.status(201).json({ message: 'Sign Up Successful', user: result.toObject({getters:true}) });
+  res
+    .status(201)
+    .json({
+      message: 'Sign Up Successful',
+      user: result.toObject({ getters: true }),
+    });
 };
 
 const login = async (req, res, next) => {
   const { email, password } = req.body;
 
-  let foundEmail
+  let foundEmail;
   try {
-      foundEmail = await User.findOne({email: email}).exec()
+    foundEmail = await User.findOne({ email: email }).exec();
   } catch (error) {
-      return next(new HttpError('Could not validate email',500))
+    return next(new HttpError('Could not validate email', 500));
   }
 
-  if(!foundEmail || foundEmail.password!==password) {
-      return next(new HttpError('Auth failed',401))
+  if (!foundEmail || foundEmail.password !== password) {
+    return next(new HttpError('Auth failed', 401));
   }
   res.status(200).json({ message: 'Login Successful!' });
 };
