@@ -46,7 +46,7 @@ const signUp = async (req,res,next) => {
     const { name,email,password,address } = req.body
     const foundEmail = DUMMY_USERS.find(user=>user.email===email)
     if(foundEmail) {
-        throw new Error('Email exists,try logging in',403)
+        return next(new Error('Email exists,try logging in',403))
     }
 
     let coordinates
@@ -57,7 +57,7 @@ const signUp = async (req,res,next) => {
         return next(error)
     }
 
-    const createdUser = { id: uuid(),name, email, password, address ,location: coordinates}
+    const createdUser = { id: uuid(),name, email, password, address ,pin: coordinates}
     DUMMY_USERS.unshift(createdUser)
     res.status(201).json({message: 'Sign Up Successful',user: createdUser})
 }
