@@ -29,17 +29,23 @@ const Product = require('../models/products')
 
 //READ
 
-const allProducts  = (req, res, next) => {
-    res.json({ totalProducts: DUMMY_PRODUCTS.length, products: DUMMY_PRODUCTS });
+const allProducts  = async (req, res, next) => {
+    const fetchedProducts = await Product.find().exec()
+    res.status(200).json({totalProducts: fetchedProducts.length, products: fetchedProducts})
   }
 
-const productsById = (req,res,next) => {
+const productsById = async (req,res,next) => {
     const productId = req.params.prodId
-    const foundProduct = DUMMY_PRODUCTS.find(prod=>prod.id===productId)
+    let foundProduct
+    try {
+      foundProduct = await Product.findById(productId).exec()
+    } catch (error) {
+      return next(new HttpError('Fetch product failed',500))
+    } 
     if(!foundProduct) {
-        throw new HttpError('COuld not find product for the provided ID',404)
+        return next(new HttpError('COuld not find product for the provided ID',404)) 
     }
-    res.status(200).json({message:'Product Found',product: foundProduct})
+    res.status(200).json({message:'Product Found',product: foundProduct.toObject({getters: true})})
 }
 
 const productsByUserId = (req,res,next) => {
