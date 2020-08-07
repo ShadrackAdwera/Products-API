@@ -8,7 +8,7 @@ const createProduct = async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    throw new HttpError('Invalid Inputs! Check your data', 422);
+    return next(new HttpError('Invalid Inputs! Check your data', 422));
   }
 
   const {
@@ -113,7 +113,7 @@ const updateProduct = async (req, res, next) => {
   }
 
   if (!foundProduct) {
-    throw new HttpError('COuld not find product for the provided ID', 404);
+    return next(new HttpError('COuld not find product for the provided ID', 404));
   }
 
   const { name, description, images, sizes, colors, price, creator } = req.body;
@@ -152,7 +152,7 @@ const deleteProduct = async (req, res, next) => {
   }
   
   if (!foundProduct) {
-    throw new HttpError('Could not find product for the specified ID', 400);
+    return next(new HttpError('Could not find product for the specified ID', 400));
   }
   
   try {
