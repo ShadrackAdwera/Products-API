@@ -2,6 +2,7 @@ const { validationResult } = require('express-validator')
 const { v4:uuid } = require('uuid')
 const HttpError = require('../models/http-error')
 const getCoordsFromAddress = require('../utils/location')
+const User = require('../models/user')
 
 const DUMMY_USERS = [
     {
@@ -43,8 +44,13 @@ const signUp = async (req,res,next) => {
     if(!error.isEmpty()) {
         return next(new HttpError('Use a valid email, password must be longer than 6 characters',422))
     }
-    const { name,email,password,address } = req.body
-    const foundEmail = DUMMY_USERS.find(user=>user.email===email)
+    const { name,image,email,password,address } = req.body
+    let foundEmail
+    try {
+        foundEmail = await User.findOne({email: email}).exec()
+    } catch (error) {
+        return next(new HttpError('Could not fetch email',500))
+    }
     if(foundEmail) {
         return next(new Error('Email exists,try logging in',403))
     }
@@ -57,9 +63,16 @@ const signUp = async (req,res,next) => {
         return next(error)
     }
 
-    const createdUser = { id: uuid(),name, email, password, address ,pin: coordinates}
-    DUMMY_USERS.unshift(createdUser)
-    res.status(201).json({message: 'Sign Up Successful',user: createdUser})
+    let result
+    const createdUser = new User({name, image, address:coordinates, email, password, products})
+
+    try {
+      result = await createdUser.save().exec()
+    } catch (error) {
+        return next(new HttpError('Auth Failed',401))
+    }
+
+    res.status(201).json({message: 'Sign Up Successful',user: result})
 }
 
 const login = (req,res,next) => {
