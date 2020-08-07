@@ -16,7 +16,7 @@ const productsSchema = new mongoose.Schema({
     },
     colors: [ {type: String, required: true}],
     price: { type: Number, required: true},
-    creator: {type: String, required: true},
+    creator: {type: mongoose.Types.ObjectId, required:true, ref: 'User'},
 })
 
 module.exports = mongoose.model('Product',productsSchema)
