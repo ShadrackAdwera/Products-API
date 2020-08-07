@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator')
 const { v4:uuid } = require('uuid')
 const HttpError = require('../models/http-error')
+const getCoordsFromAddress = require('../utils/location')
 
 const DUMMY_USERS = [
     {
@@ -37,17 +38,26 @@ const getUserById = (req,res,next) => {
 
 }
 
-const signUp = (req,res,next) => {
+const signUp = async (req,res,next) => {
     const error = validationResult(req)
     if(!error.isEmpty()) {
-        throw new HttpError('Use a valid email, password must be longer than 6 characters',422)
+        return next(new HttpError('Use a valid email, password must be longer than 6 characters',422))
     }
-    const { name,email,password } = req.body
+    const { name,email,password,address } = req.body
     const foundEmail = DUMMY_USERS.find(user=>user.email===email)
     if(foundEmail) {
         throw new Error('Email exists,try logging in',403)
     }
-    const createdUser = { id: uuid(),name, email, password}
+
+    let coordinates
+
+    try {
+        coordinates = await getCoordsFromAddress(address)
+    } catch (error) {
+        return next(error)
+    }
+
+    const createdUser = { id: uuid(),name, email, password, address ,location: coordinates}
     DUMMY_USERS.unshift(createdUser)
     res.status(201).json({message: 'Sign Up Successful',user: createdUser})
 }
