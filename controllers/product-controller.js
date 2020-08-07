@@ -117,6 +117,12 @@ const productsByUserId = (req,res,next) => {
 //UPDATE
 
 const updateProduct = (req,res,next) => {
+
+  const error = validationResult(req)
+  if(!error.isEmpty()) {
+    throw new HttpError('Invalid inputs, try again',422)
+  }
+
     const productId = req.params.prodId
     const foundProduct = {...DUMMY_PRODUCTS.find(prod=>prod.id===productId)}
     if(!foundProduct) {
