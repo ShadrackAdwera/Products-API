@@ -10,7 +10,7 @@ const app = express();
 app.use(bodyParser.json());
 
 app.use('/api/products', productRoutes);
-app.use('/api/user', userRoutes);
+app.use('/api/users', userRoutes);
 
 app.use((req, res, next) => {
   throw new HttpError('Could not find the method / route. Try Again', 500);

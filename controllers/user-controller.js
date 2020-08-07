@@ -14,9 +14,15 @@ const allUsers = async (req, res, next) => {
     });
 };
 
-const getUserById = (req, res, next) => {
+const getUserById = async (req, res, next) => {
   const userId = req.params.userId;
-  const foundUser = DUMMY_USERS.find((user) => user.id === userId);
+  let foundUser
+  try {
+    foundUser = await User.findById(userId).exec()
+  } catch (error) {
+      return next(new HttpError('Fetch user failed',500))
+  }
+
   if (!foundUser) {
     throw new HttpError('Could not find user for the provided ID', 404);
   }
