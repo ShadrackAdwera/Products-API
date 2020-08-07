@@ -162,7 +162,7 @@ const deleteProduct = async (req, res, next) => {
   let foundProduct;
 
   try {
-    foundProduct = await Product.findById(productId).exec();
+    foundProduct = await Product.findById(productId).populate('creator');
   } catch (error) {
     return next(new HttpError('Could not fetch product', 500));
   }
@@ -174,7 +174,12 @@ const deleteProduct = async (req, res, next) => {
   }
 
   try {
-    await foundProduct.remove();
+    const sess = await mongoose.startSession()
+    sess.startTransaction()
+    await foundProduct.remove({session: sess});
+    foundProduct.creator.products.pull(foundProduct)
+    await foundProduct.creator.save({session: sess})
+    sess.commitTransaction()
   } catch (error) {
     return next(new HttpError('Could not delete product', 500));
   }
