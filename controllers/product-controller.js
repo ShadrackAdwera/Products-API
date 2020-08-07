@@ -48,32 +48,44 @@ const productsById = async (req,res,next) => {
     res.status(200).json({message:'Product Found',product: foundProduct.toObject({getters: true})})
 }
 
-const productsByUserId = (req,res,next) => {
+const productsByUserId = async (req,res,next) => {
     const userId = req.params.userId
-    const foundProducts = DUMMY_PRODUCTS.filter(prod=>prod.creator===userId)
-    if(!foundProducts) {
-        throw new HttpError('Could not find product for the provided user ID',404)
+    let foundProducts
+    
+    try {
+      foundProducts = await Product.find({creator: userId}).exec()
+    } catch (error) {
+      return next(new HttpError('Fetch products failed',500))
     }
-    res.status(200).json({totalProducts: foundProducts.length, products: foundProducts})
+    
+    if(!foundProducts) {
+        return next(new HttpError('Could not find product for the provided user ID',404))
+    }
+    res.status(200).json({totalProducts: foundProducts.length, products: foundProducts.map(prod=>prod.toObject({getters:true}))})
 }
 
 //UPDATE
 
-const updateProduct = (req,res,next) => {
+const updateProduct = async (req,res,next) => {
 
   const error = validationResult(req)
   if(!error.isEmpty()) {
-    throw new HttpError('Invalid inputs, try again',422)
+    return next(new HttpError('Invalid inputs, try again',422))
   }
-
     const productId = req.params.prodId
-    const foundProduct = {...DUMMY_PRODUCTS.find(prod=>prod.id===productId)}
+    let foundProduct
+
+    try {
+      foundProduct = await Product.findById(productId).exec()
+    } catch (error) {
+      return next(new HttpError('Could not find product',404))
+    }
+    
     if(!foundProduct) {
         throw new HttpError('COuld not find product for the provided ID', 404)
     }
-    const { name,description,images,sizes,colors,price,creator } = req.body
 
-    const placeIndex = DUMMY_PRODUCTS.findIndex(prod=>prod.id===productId)
+    const { name,description,images,sizes,colors,price,creator } = req.body
 
     foundProduct.name = name
     foundProduct.description = description
@@ -83,9 +95,14 @@ const updateProduct = (req,res,next) => {
     foundProduct.price = price
     foundProduct.creator = creator
 
-    DUMMY_PRODUCTS[placeIndex] = foundProduct
+    try {
+      const result = await foundProduct.save()
+    } catch (error) {
+      return next(new HttpError('Could not update place, try again',422))
+    }
 
-    res.status(200).json({message:'Product Updated', product: foundProduct}) 
+
+    res.status(200).json({message:'Product Updated', product: foundProduct.toObject({getters:true})}) 
 }
 
 //DELETE
