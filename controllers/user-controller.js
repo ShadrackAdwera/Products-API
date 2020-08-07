@@ -50,7 +50,7 @@ const signUp = async (req, res, next) => {
       )
     );
   }
-  const { name, image, email, password, address } = req.body;
+  const { name, image, email, password, address,products } = req.body;
   let foundEmail;
   try {
     foundEmail = await User.findOne({ email: email }).exec();
@@ -73,19 +73,20 @@ const signUp = async (req, res, next) => {
   const createdUser = new User({
     name,
     image,
-    address: coordinates,
+    address,
+    pin: coordinates,   
     email,
     password,
     products,
   });
 
   try {
-    result = await createdUser.save().exec();
+    result = await createdUser.save()
   } catch (error) {
     return next(new HttpError('Auth Failed', 401));
   }
 
-  res.status(201).json({ message: 'Sign Up Successful', user: result });
+  res.status(201).json({ message: 'Sign Up Successful', user: result.toObject({getters:true}) });
 };
 
 const login = (req, res, next) => {
