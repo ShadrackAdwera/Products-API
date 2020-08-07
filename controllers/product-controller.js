@@ -174,12 +174,12 @@ const deleteProduct = async (req, res, next) => {
   }
 
   try {
-    const sess = await mongoose.startSession()
-    sess.startTransaction()
-    await foundProduct.remove({session: sess});
-    foundProduct.creator.products.pull(foundProduct)
-    await foundProduct.creator.save({session: sess})
-    sess.commitTransaction()
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await foundProduct.remove({ session: sess });
+    foundProduct.creator.products.pull(foundProduct);
+    await foundProduct.creator.save({ session: sess });
+    sess.commitTransaction();
   } catch (error) {
     return next(new HttpError('Could not delete product', 500));
   }
