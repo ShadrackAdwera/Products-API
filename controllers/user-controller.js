@@ -46,7 +46,7 @@ const signUp = async (req, res, next) => {
       )
     );
   }
-  const { name, image, address, email, password } = req.body;
+  const { name, address, email, password } = req.body;
   let foundEmail;
   try {
     foundEmail = await User.findOne({ email: email }).exec();
@@ -68,7 +68,7 @@ const signUp = async (req, res, next) => {
   let result;
   const createdUser = new User({
     name,
-    image,
+    image: req.file.path,
     address,
     pin: coordinates,
     email,
@@ -89,7 +89,7 @@ const signUp = async (req, res, next) => {
   await transporter.sendMail({
     to: email,
     from: 'bazubigman0@gmail.com',
-    subject: 'Welcome to MERN Shop',
+    subject: `Welcome to MERN Shop ${user.name}`,
     html: '<h2>Your account was successfully created, enjoy all the products offered</h2>'
   })
 };
