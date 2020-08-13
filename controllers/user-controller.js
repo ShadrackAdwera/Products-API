@@ -1,8 +1,17 @@
 const { validationResult } = require('express-validator');
-const { v4: uuid } = require('uuid');
+const nodemailer = require('nodemailer')
+const nodemailerTransport = require('nodemailer-sendgrid-transport')
 const HttpError = require('../models/http-error');
 const getCoordsFromAddress = require('../utils/location');
 const User = require('../models/user');
+
+const transporter = nodemailer.createTransport(nodemailerTransport({
+  auth: {
+    api_key: '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'
+  }
+}))
+
+
 
 const allUsers = async (req, res, next) => {
   const users = await User.find({}, '-password');
@@ -45,7 +54,7 @@ const signUp = async (req, res, next) => {
     return next(new HttpError('Could not fetch email', 500));
   }
   if (foundEmail) {
-    return next(new Error('Email exists,try logging in', 403));
+    return next(new Error('Email exists! Try logging in', 403));
   }
 
   let coordinates;
@@ -77,6 +86,12 @@ const signUp = async (req, res, next) => {
     message: 'Sign Up Successful',
     user: result.toObject({ getters: true }),
   });
+  await transporter.sendMail({
+    to: email,
+    from: 'bazubigman0@gmail.com',
+    subject: 'Welcome to MERN Shop',
+    html: '<h2>Your account was successfully created, enjoy all the products offered</h2>'
+  })
 };
 
 const login = async (req, res, next) => {
