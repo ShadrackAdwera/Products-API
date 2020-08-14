@@ -13,10 +13,15 @@ const createProduct = async (req, res, next) => {
     return next(new HttpError('Invalid Inputs! Check your data', 422));
   }
 
+  const reqFiles = [];
+    const url = req.protocol + '://' + req.get('host')
+    for (var i = 0; i < req.files.length; i++) {
+        reqFiles.push(url + '/public/' + req.files[i].filename)
+    }
+
   const {
     name,
     description,
-    imageUrls,
     sizes,
     colors,
     price,
@@ -30,7 +35,7 @@ const createProduct = async (req, res, next) => {
   const createdProduct = new Product({
     name,
     description,
-    imageUrls,
+    images: reqFiles,
     sizes,
     colors,
     price,
