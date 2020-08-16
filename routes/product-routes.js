@@ -7,7 +7,12 @@ const productFileUpload = require('../middleware/product-file-upload')
 
 const productController = require('../controllers/product-controller');
 
+const checkAuth = require('../middleware/check-auth')
+
 router.get('/', productController.allProducts);
+
+router.use(checkAuth)
+
 router.get('/:prodId', productController.productsById);
 router.get('/user/:userId', productController.productsByUserId);
 
