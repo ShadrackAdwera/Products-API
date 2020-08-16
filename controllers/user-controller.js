@@ -1,19 +1,20 @@
 const { validationResult } = require('express-validator');
-const nodemailer = require('nodemailer')
-const nodemailerTransport = require('nodemailer-sendgrid-transport')
-const bcrypt = require('bcryptjs')
+const nodemailer = require('nodemailer');
+const nodemailerTransport = require('nodemailer-sendgrid-transport');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const HttpError = require('../models/http-error');
 const getCoordsFromAddress = require('../utils/location');
 const User = require('../models/user');
 
-const transporter = nodemailer.createTransport(nodemailerTransport({
-  auth: {
-    api_key: process.env.SEND_GRID_API_KEY
-  }
-}))
-
-
+const transporter = nodemailer.createTransport(
+  nodemailerTransport({
+    auth: {
+      api_key: process.env.SEND_GRID_API_KEY,
+    },
+  })
+);
 
 const allUsers = async (req, res, next) => {
   const users = await User.find({}, '-password');
@@ -71,10 +72,10 @@ const signUp = async (req, res, next) => {
   let hashedPassword;
 
   try {
-    hashedPassword = await bcrypt.hash(password, 12)
+    hashedPassword = await bcrypt.hash(password, 12);
   } catch (error) {
-    const err = new HttpError('Could not create user',500)
-    return next(err)
+    const err = new HttpError('Could not create user', 500);
+    return next(err);
   }
 
   const createdUser = new User({
@@ -83,7 +84,7 @@ const signUp = async (req, res, next) => {
     address,
     pin: coordinates,
     email,
-    password:hashedPassword,
+    password: hashedPassword,
     products: [],
   });
 
@@ -93,16 +94,33 @@ const signUp = async (req, res, next) => {
     return next(new HttpError('Auth Failed', 401));
   }
 
+  let token;
+
+  try {
+    token = jwt.sign(
+      { userId: createdUser.id, email: createdUser.email },
+      'likon_deez_nuts',
+      { expiresIn: '1h' }
+    );
+  } catch (error) {
+    return next(new HttpError('Auth Failed', 401));
+  }
+
   res.status(201).json({
     message: 'Sign Up Successful',
-    user: result.toObject({ getters: true }),
+    user: {
+      id: createdUser.id,
+      email: createdUser.email,
+      token: token,
+    },
   });
   await transporter.sendMail({
     to: email,
     from: 'bazubigman0@gmail.com',
     subject: `Welcome to MERN Shop ${user.name}`,
-    html: '<h2>Your account was successfully created, enjoy all the products offered</h2>'
-  })
+    html:
+      '<h2>Your account was successfully created, enjoy all the products offered</h2>',
+  });
 };
 
 const login = async (req, res, next) => {
@@ -119,20 +137,39 @@ const login = async (req, res, next) => {
     return next(new HttpError('Auth failed, Invalid Credentials', 401));
   }
 
-  let isValidPassword
+  let isValidPassword;
 
   try {
-    isValidPassword = bcrypt.compare(password, foundEmail.password)
+    isValidPassword = await bcrypt.compare(password, foundEmail.password);
   } catch (error) {
-    const err = new HttpError('Could not log you in',500)
-    return next(err)
+    const err = new HttpError('Could not log you in', 500);
+    return next(err);
   }
 
-  if(!isValidPassword) {
+  if (!isValidPassword) {
     return next(new HttpError('Auth failed, Invalid Credentials!', 401));
   }
 
-  res.status(200).json({ message: 'Login Successful!' });
+  let token;
+
+  try {
+    token = jwt.sign(
+      { userId: foundEmail.id, email: foundEmail.email },
+      'likon_deez_nuts',
+      { expiresIn: '1h' }
+    );
+  } catch (error) {
+    return next(new HttpError('Could not log you in, try again', 500));
+  }
+
+  res.status(200).json({
+    message: 'Login Successful!',
+    user: {
+      id: foundEmail.id,
+      email: foundEmail.email,
+      token: token,
+    },
+  });
 };
 
 exports.allUsers = allUsers;
