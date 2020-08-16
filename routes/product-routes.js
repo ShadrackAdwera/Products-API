@@ -11,10 +11,11 @@ const checkAuth = require('../middleware/check-auth')
 
 router.get('/', productController.allProducts);
 
-router.use(checkAuth)
 
 router.get('/:prodId', productController.productsById);
 router.get('/user/:userId', productController.productsByUserId);
+
+router.use(checkAuth)
 
 router.post(
   '/new',

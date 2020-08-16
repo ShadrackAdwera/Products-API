@@ -117,7 +117,7 @@ const signUp = async (req, res, next) => {
   await transporter.sendMail({
     to: email,
     from: 'bazubigman0@gmail.com',
-    subject: `Welcome to MERN Shop ${user.name}`,
+    subject: `Welcome to MERN Shop ${createdUser.name}`,
     html:
       '<h2>Your account was successfully created, enjoy all the products offered</h2>',
   });
