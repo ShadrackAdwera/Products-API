@@ -1,6 +1,8 @@
 const { validationResult } = require('express-validator');
 const nodemailer = require('nodemailer')
 const nodemailerTransport = require('nodemailer-sendgrid-transport')
+const bcrypt = require('bcryptjs')
+
 const HttpError = require('../models/http-error');
 const getCoordsFromAddress = require('../utils/location');
 const User = require('../models/user');
@@ -66,13 +68,22 @@ const signUp = async (req, res, next) => {
   }
 
   let result;
+  let hashedPassword;
+
+  try {
+    hashedPassword = await bcrypt.hash(password, 12)
+  } catch (error) {
+    const err = new HttpError('Could not create user',500)
+    return next(err)
+  }
+
   const createdUser = new User({
     name,
     image: req.file.path,
     address,
     pin: coordinates,
     email,
-    password,
+    password:hashedPassword,
     products: [],
   });
 
