@@ -115,9 +115,23 @@ const login = async (req, res, next) => {
     return next(new HttpError('Could not validate email', 500));
   }
 
-  if (!foundEmail || foundEmail.password !== password) {
-    return next(new HttpError('Auth failed', 401));
+  if (!foundEmail) {
+    return next(new HttpError('Auth failed, Invalid Credentials', 401));
   }
+
+  let isValidPassword
+
+  try {
+    isValidPassword = bcrypt.compare(password, foundEmail.password)
+  } catch (error) {
+    const err = new HttpError('Could not log you in',500)
+    return next(err)
+  }
+
+  if(!isValidPassword) {
+    return next(new HttpError('Auth failed, Invalid Credentials!', 401));
+  }
+
   res.status(200).json({ message: 'Login Successful!' });
 };
 
